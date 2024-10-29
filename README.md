@@ -1,4 +1,3 @@
-Created by Pachabhaiya, Chhabi, last modified by Rier, Eric on Aug 14, 2024
 Evernorth Single Directory Components (SDC) is a Drupal custom module for creating the presentational UI components that can be consumed by Drupal web applications. Single Directory Component was introduced as an experimental module in Drupal 10.1.0 and is stable in Drupal 10.3.0.
 
 
