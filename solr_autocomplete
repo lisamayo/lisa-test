@@ -1,0 +1,68 @@
+function tricare_general_search_api_autocomplete_suggestions_alter(array &$suggestions, array $alter_params) {
+  // Users should really try searching for "mandelbrot" once, so just always
+  // suggest that, too. In case the suggestions generated have reached the
+  // limit, replace the last suggestion to this end.
+  /** @var \Drupal\search_api_autocomplete\SearchInterface $search */
+  /** @var \Drupal\search_api_autocomplete\Suggestion\SuggestionInterface[] $suggestions */
+  $search = $alter_params['search'];
+  // Loop through each suggestion.
+  foreach ($suggestions as $suggestion) {
+    // Ensure $suggestion is an instance of SuggestionInterface.
+    if (!$suggestion instanceof SuggestionInterface) {
+      continue;
+    }
+
+    // Retrieve the URL object.
+    $url_object = $suggestion->getUrl();
+    if (!$url_object instanceof Url) {
+      continue;
+    }
+
+    // Check if the URL object has an entity option.
+    $entity_object = $url_object->getOption('entity');
+    if (!$entity_object instanceof EntityInterface || $entity_object->getEntityTypeId() !== 'node') {
+      continue;
+    }
+
+    // Get the bundle and its label.
+    $bundle = $entity_object->bundle();
+    $bundle_info = \Drupal::entityTypeManager()
+      ->getStorage('node_type')
+      ->load($bundle);
+    $content_type_label = $bundle_info ? $bundle_info->label() : 'Unknown Content Type';
+
+    // Optimize content type label handling.
+    if (in_array($content_type_label, ['Basic page', 'Landing page'], TRUE)) {
+      $content_type_label = 'Website page';
+    }
+
+    // Check if the content type is 'Blog' and retrieve additional fields.
+    if ($content_type_label === 'Blog') {
+      // Retrieve the label for field_article_type using its value.
+      $field_article_type_value = $entity_object->get('field_article_type')->value ?? NULL;
+      $field_article_type_label = 'N/A';
+      if ($field_article_type_value) {
+        $field_article_type_label = $field_article_type_value;
+      }
+      // @todo Check to see if the topic is absolutely necessary as it adds overhead and could cause performance issues.
+      // Retrieve the label for field_topic using the target_id.
+      $field_topic_target_id = $entity_object->get('field_topic')->target_id ?? NULL;
+      $field_topic_label = 'N/A';
+      if ($field_topic_target_id) {
+        $term = \Drupal::entityTypeManager()
+          ->getStorage('taxonomy_term')
+          ->load($field_topic_target_id);
+        $field_topic_label = $term ? $term->label() : 'N/A';
+      }
+
+      // Modify the suggestion label to include content type, article type, and topic.
+      $label = $suggestion->getLabel();
+      $suggestion->setLabel($label . ' | ' . $content_type_label . ' | ' . $field_article_type_label . ' | ' . $field_topic_label);
+    }
+    else {
+      // Modify the suggestion label to include the content type.
+      $label = $suggestion->getLabel();
+      $suggestion->setLabel($label . ' | ' . $content_type_label);
+    }
+  }
+}
