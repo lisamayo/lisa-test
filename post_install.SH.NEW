@@ -1,3 +1,13 @@
+c7x4hg@HN91749RHX dsf-drupal % colima status
+INFO[0000] colima is running using macOS Virtualization.Framework
+INFO[0000] arch: aarch64
+INFO[0000] runtime: docker
+INFO[0000] mountType: sshfs
+INFO[0000] socket: unix:///Users/c7x4hg/.colima/default/docker.sock
+
+
+
+
 cat package.json | grep -E "(puppeteer|electron|sharp|node-sass)"
 
 
