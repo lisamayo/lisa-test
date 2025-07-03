@@ -1,3 +1,7 @@
+cat package.json | grep -E "(puppeteer|electron|sharp|node-sass)"
+
+
+
 #!/bin/bash
 # In Jenkins, reconfigure node and update gitignore.
 if [[ -v JENKINS_HOME ]]; then
