@@ -1,4 +1,12 @@
-﻿.failed to solve: ddev/ddev-webserver:v1.23.5: failed to resolve source metadata for docker.io/ddev/ddev-webserver:v1.23.5: error getting credentials - err: exec: "docker-credential-desktop": executable file not found in $PATH, out: `` 
+> bash scripts/composer/POST_INSTALL.sh
+Running yarn install...
+qemu-x86_64: Could not open '/lib64/ld-linux-x86-64.so.2': No such file or directory
+Yarn install failed.
+Script bash scripts/composer/POST_INSTALL.sh handling the post-install-cmd event returned with error code 1
+ 
+ 
+ 
+ .failed to solve: ddev/ddev-webserver:v1.23.5: failed to resolve source metadata for docker.io/ddev/ddev-webserver:v1.23.5: error getting credentials - err: exec: "docker-credential-desktop": executable file not found in $PATH, out: `` 
 Failed to start accredo: docker-compose build failed: composeCmd failed to run 'COMPOSE_PROJECT_NAME=ddev-accredo docker-compose -f /Users/c7x4hg/sites/accredo-drupal/.ddev/.ddev-docker-compose-full.yaml --progress=plain build', action='[--progress=plain build]', err='exit status 17', stdout='#0 building with "default" instance using docker driver
 
 #1 [db internal] load build definition from Dockerfile
