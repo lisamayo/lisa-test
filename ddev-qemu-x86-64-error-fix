@@ -1,0 +1,123 @@
+# Fix DDEV qemu-x86_64 Error on Mac M2 - Complete Guide
+
+## Problem Description
+When running DDEV with Colima on Apple M2 chips, you may encounter this error:
+```
+qemu-x86_64: Could not open '/lib64/ld-linux-x86-64.so.2': No such file or directory
+```
+
+This happens when Node.js/Yarn commands fail because DDEV is using x86_64 Docker images instead of ARM64 images.
+
+## Prerequisites
+- Mac with Apple M2 chip
+- DDEV installed
+- Colima running as Docker provider
+
+## Solution Steps
+
+### Step 1: Stop DDEV
+```bash
+ddev stop
+```
+
+### Step 2: Verify Colima Architecture
+```bash
+colima status
+```
+Ensure the output shows:
+- `arch: aarch64` (ARM64 architecture)
+- `runtime: docker`
+
+If Colima is not running or shows x86_64, restart it:
+```bash
+colima stop
+colima start --arch aarch64 --memory 4
+```
+
+### Step 3: Clean Up Old x86_64 Images
+```bash
+# Remove old DDEV containers
+ddev delete --omit-snapshot
+
+# Clean up old Docker images
+docker system prune -a --force
+```
+
+### Step 4: Configure DDEV for ARM64
+Edit your DDEV configuration file:
+```bash
+nano .ddev/config.yaml
+```
+
+Add these lines at the end of the file:
+```yaml
+web_environment:
+  - DOCKER_DEFAULT_PLATFORM=linux/arm64
+```
+
+Save and exit (Ctrl+X, then Y, then Enter).
+
+### Step 5: Start DDEV Fresh
+```bash
+ddev start
+```
+
+This will download new ARM64 Docker images (may take a few minutes).
+
+### Step 6: Verify the Fix
+Test that the architecture is now correct:
+
+```bash
+# Check container architecture
+ddev exec "uname -m"
+# Should output: aarch64
+
+# Test Node.js (should work without qemu error)
+ddev exec "node --version"
+
+# Test Yarn (should work without qemu error)
+ddev exec "yarn --version"
+```
+
+### Step 7: Test Original Command
+```bash
+ddev composer install
+```
+
+This should now run successfully without qemu errors.
+
+## What This Fix Does
+- Forces DDEV to use ARM64 Docker images instead of x86_64
+- Ensures Node.js and Yarn run natively on ARM64 architecture
+- Eliminates qemu emulation errors
+- No changes needed to your project's scripts
+
+## Troubleshooting
+
+### If Colima shows x86_64 architecture:
+```bash
+colima delete
+colima start --arch aarch64 --memory 4
+```
+
+### If Docker connection fails:
+```bash
+docker context use colima
+docker ps
+```
+
+### If you prefer Docker Desktop:
+1. Install Docker Desktop for Mac (ARM64 version)
+2. Stop Colima: `colima stop`
+3. Use Docker Desktop instead
+4. Set context: `docker context use default`
+
+## Files Modified
+- `.ddev/config.yaml` - Added ARM64 platform configuration
+
+## No Changes Needed
+- Your project's `POST_INSTALL.sh` script
+- `composer.json` scripts
+- Any other project files
+
+The fix is purely at the Docker container architecture level.
