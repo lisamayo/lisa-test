@@ -17,19 +17,19 @@
       '.accordion-group-header-active',
     );
 
-    if (openAccordion.length > 0) {
-      if (openAccordion[0] !== event.currentTarget) {
-        $(openAccordion[0])
-          .removeClass('accordion-group-header-active')
-          .attr('aria-expanded', 'false');
-        $(openAccordion[0].nextElementSibling).removeClass(
-          'accordion-group-content-active',
-        ).css({
-          height: '0px',
-          overflow: 'hidden',
-        });
-      }
-    }
+    if (openAccordion.length > 0 && openAccordion[0] !== event.currentTarget) {
+  $(openAccordion[0])
+    .removeClass('accordion-group-header-active')
+    .attr('aria-expanded', 'false');
+
+  $(openAccordion[0].nextElementSibling)
+    .removeClass('accordion-group-content-active')
+    .css({
+      height: '0px',
+      overflow: 'hidden',
+    });
+}
+
 
     $(event.currentTarget)
       .toggleClass('accordion-group-header-active')
