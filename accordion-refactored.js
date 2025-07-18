@@ -1,131 +1,89 @@
 /**
  * @file
  *
- * Refactored Tab (Accordion) functionality with dynamic height handling.
+ * Tab functionality
  */
 
 (($, Drupal, once) => {
   /**
-   * Toggle Accordion Panel
-   * @param {Object} event - Accordion Toggle Event
+   * Load Content
+   * @param {Object} event Accordion Toggle Event
    */
   const toggleAccordion = (event) => {
-    const trigger = event.currentTarget;
-    const expanded = trigger.getAttribute('aria-expanded') === 'true';
-    const id = trigger.id;
-    const content = trigger.nextElementSibling;
+    const expanded =
+      event.currentTarget.getAttribute('aria-expanded') === 'true';
+    const id = event.currentTarget.id;
+    const openAccordion = document.querySelectorAll(
+      '.accordion-group-header-active',
+    );
 
-    // Close any currently open accordion
-    const openHeader = document.querySelector('.accordion-group-header-active');
-    if (openHeader && openHeader !== trigger) {
-      closeAccordion(openHeader, openHeader.nextElementSibling);
+    if (openAccordion.length > 0) {
+      if (openAccordion[0] !== event.currentTarget) {
+        $(openAccordion[0])
+          .removeClass('accordion-group-header-active')
+          .attr('aria-expanded', 'false');
+        $(openAccordion[0].nextElementSibling).removeClass(
+          'accordion-group-content-active',
+        ).css({
+          height: '0px',
+          overflow: 'hidden',
+        });
+      }
     }
 
-    // Toggle current accordion
-    if (expanded) {
-      closeAccordion(trigger, content);
-    } else {
-      openAccordion(trigger, content);
+    $(event.currentTarget)
+      .toggleClass('accordion-group-header-active')
+      .attr('aria-expanded', expanded ? 'false' : 'true');
 
-      // Track Analytics Event
-      const [name] = $(trigger).text().trim().split(/\r?\n/);
-      trackAnalyticsEvent(name, id);
-    }
-  };
+    // Track in Analytics at the accordion has been opened.
+    if (!expanded) {
+      const [name] = $(event.currentTarget).text().trim().split(/\r?\n/);
 
-  /**
-   * Open Accordion Helper
-   */
-  const openAccordion = (trigger, content) => {
-    trigger.classList.add('accordion-group-header-active');
-    trigger.setAttribute('aria-expanded', 'true');
-
-    // Make sure content is visible before measuring
-    content.style.display = 'block';
-    content.style.overflow = 'hidden';
-    content.style.height = '0px';
-
-    // Allow the browser to render before measuring
-    requestAnimationFrame(() => {
-      const fullHeight = content.scrollHeight + 'px';
-      content.style.transition = 'height 0.3s ease';
-      content.style.height = fullHeight;
-
-      // Cleanup after transition
-      content.addEventListener('transitionend', function cleanup() {
-        content.style.height = 'auto';
-        content.style.overflow = 'visible';
-        content.removeEventListener('transitionend', cleanup);
-      });
-    });
-  };
-
-  /**
-   * Close Accordion Helper
-   */
-  const closeAccordion = (trigger, content) => {
-    trigger.classList.remove('accordion-group-header-active');
-    trigger.setAttribute('aria-expanded', 'false');
-
-    content.style.overflow = 'hidden';
-    content.style.height = content.scrollHeight + 'px';
-
-    // Force reflow
-    void content.offsetWidth;
-
-    requestAnimationFrame(() => {
-      content.style.transition = 'height 0.3s ease';
-      content.style.height = '0px';
-    });
-
-    content.addEventListener('transitionend', function cleanup() {
-      content.style.display = 'none';
-      content.style.height = '';
-      content.style.transition = '';
-      content.removeEventListener('transitionend', cleanup);
-    });
-  };
-
-  /**
-   * Track Analytics Event
-   */
-  const trackAnalyticsEvent = (name, id) => {
-    if (
-      typeof Drupal.esiDdlSchema !== 'undefined' &&
-      typeof Drupal.esiDdlSchema.sendPageActionEvent !== 'undefined'
-    ) {
-      Drupal.esiDdlSchema.sendPageActionEvent({
-        controlText: name,
-        controlRegion: 'main',
-        controlType: 'Click',
-        controlName: id,
-      });
-    } else {
-      const accordionCustomEvent = new CustomEvent('ESI_DDL_SCHEMA_EVENT', {
-        detail: {
-          event: {
-            eventInfo: {
-              eventName: name,
-            },
-            category: {
-              primaryCategory: 'homepageActions',
+      if (
+        typeof Drupal.esiDdlSchema !== 'undefined' &&
+        typeof Drupal.esiDdlSchema.sendPageActionEvent !== 'undefined'
+      ) {
+        Drupal.esiDdlSchema.sendPageActionEvent({
+          controlText: name,
+          controlRegion: 'main',
+          controlType: 'Click',
+          controlName: id
+        });
+      } else {
+        const accordionCustomEvent = new CustomEvent('ESI_DDL_SCHEMA_EVENT', {
+          detail: {
+            event: {
+              eventInfo: {
+                eventName: name,
+              },
+              category: {
+                primaryCategory: 'homepageActions',
+              },
             },
           },
-        },
-        bubbles: true,
-        cancelable: false,
-      });
+          bubbles: true,
+          cancelable: false,
+        });
 
-      document.querySelector('html').dispatchEvent(accordionCustomEvent);
+        document.querySelector('html').dispatchEvent(accordionCustomEvent);
+      }
     }
+
+    const contentPanel = event.currentTarget.nextElementSibling;
+
+    // --- Fix: Ensure content is visible before toggling ---
+    $(contentPanel).css('display', 'block');
+
+    // Apply class toggle inside requestAnimationFrame to ensure reflow
+    requestAnimationFrame(() => {
+      $(contentPanel).toggleClass('accordion-group-content-active');
+    });
   };
 
   Drupal.behaviors.XFORCE_NESTED_ACCORDION = {
     attach() {
-      $(once('XFORCE_NESTED_ACCORDION', '.accordion-group-header')).on(
-        'click',
-        toggleAccordion
-      );
+      $(once('XFORCE_NESTED_ACCORDION', 'body'))
+        .on('click', '.accordion-group-header', toggleAccordion);
     },
   };
 })(jQuery, Drupal, once);
