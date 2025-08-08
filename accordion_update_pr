@@ -1,0 +1,72 @@
+## 🔧 Pull Request: Improve Accordion Responsiveness & Animation Stability
+
+### Summary
+
+This PR improves the behavior and performance of the `.evernorth-sdc__accordion` component by addressing several issues:
+
+1. ✅ **Sluggish performance** when opening accordion panels with multilingual or complex content.
+2. ✅ **Unintended double-click behavior**, where double-clicking a panel could cause flickering or inconsistent state.
+3. ✅ **Abrupt first-open transitions**, which now animate smoothly and consistently.
+4. ✅ **Accordion flicker during rapid clicks**, resolved by blocking interaction while a transition is in progress.
+
+---
+
+### 📦 What Was Changed
+
+#### 1. Improved Animation Performance
+- Replaced `clientHeight` with `scrollHeight` for more accurate and less expensive height calculation.
+- Removed the use of `height: auto`, which is not animatable and caused layout jank.
+- Added a **forced reflow using `offsetHeight`** before setting expanded height to ensure smooth transition on first open.
+- Applied `will-change: height` only during the animation to allow the browser to optimize rendering without keeping it active unnecessarily.
+
+#### 2. Prevented Double-Click Issues
+- Used `e.detail > 1` to ignore double-click events and prevent rapid, repeated toggles.
+
+#### 3. Prevented Rapid Click Flickering
+- Introduced `is-transitioning` class to temporarily disable interaction during a height transition.
+- This ensures that clicking multiple accordion headers rapidly won’t cause panels to open and close immediately.
+
+#### 4. Preserved Comment Structure
+- All original comments in the accordion JavaScript file were **left unchanged**, per project requirements.
+
+---
+
+### 🧪 Testing Steps
+
+#### ✅ General Behavior
+- [ ] Clicking an accordion item toggles it open/closed.
+- [ ] Content expands/contracts smoothly.
+- [ ] Only one accordion item opens at a time (if applicable).
+
+#### ✅ Performance & Animation
+- [ ] Multilingual and complex content loads quickly (~< 300ms).
+- [ ] First-time opening a panel animates smoothly (no abrupt jumps).
+- [ ] Transitions are consistent across repeated toggles.
+
+#### ✅ Interaction Robustness
+- [ ] Double-clicking an accordion header has no effect.
+- [ ] Clicking multiple headers rapidly does **not** cause flickering or accidental close.
+- [ ] Accordion interaction is blocked during the transition, then re-enabled cleanly.
+
+#### ✅ Code Quality
+- [ ] No ESLint errors (e.g., `no-unused-expressions`).
+- [ ] No JavaScript console errors or warnings.
+
+---
+
+### 📁 Files Modified
+
+- `evernorth_sdc_accordion.js` (accordion behavior script)
+
+---
+
+### 🚀 Recommendation
+
+Please test across:
+
+- ✅ Desktop browsers (Chrome, Firefox, Safari)
+- ✅ Mobile (iOS Safari, Android Chrome)
+- ✅ Accordions with long text, multilingual content, and edge cases
+
+---
+
