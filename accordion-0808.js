@@ -9,6 +9,9 @@
     attach(context) {
       once('evernorth_sdc_accordion', '.evernorth-sdc__accordion', context).forEach((accordionElem) => {
         accordionElem.querySelector('.evernorth-sdc__accordion__button').addEventListener('click', (e) => {
+          // Prevent double-clicks from triggering the event handler multiple times.
+          if (e.detail > 1) return;
+
           const accordionButton = e.currentTarget;
           const accordionBody = accordionButton.nextElementSibling;
           const expanded = accordionButton.getAttribute('aria-expanded') === 'true';
@@ -18,13 +21,9 @@
             accordionButton.setAttribute('aria-expanded', 'true');
 
             // Perform the slide toggle in conjunction with css transitions.
-            accordionBody.style.height = "auto";
+            accordionBody.style.willChange = 'height';
+            accordionBody.style.height = accordionBody.scrollHeight + "px";
             accordionBody.setAttribute('aria-hidden', 'false');
-            const height = accordionBody.clientHeight + "px";
-            accordionBody.style.height = "0px";
-            setTimeout(() => {
-              accordionBody.style.height = height;
-            }, 0);
 
             // Send EDDL event.
             if (
@@ -42,16 +41,27 @@
                 controlName: id
               });
             }
+
+            // Remove will-change after transition completes.
+            accordionBody.addEventListener('transitionend', () => {
+              accordionBody.style.willChange = '';
+            }, { once: true });
+
           } else {
             accordionButton.setAttribute('aria-expanded', 'false');
-            accordionBody.style.height = accordionBody.clientHeight + "px";
+
+            // Set current height before collapsing to trigger transition.
+            accordionBody.style.willChange = 'height';
+            accordionBody.style.height = accordionBody.scrollHeight + "px";
             setTimeout(() => {
               accordionBody.style.height = '0px';
             }, 0);
+
             accordionBody.setAttribute('aria-hidden', 'true');
             accordionBody.addEventListener('transitionend', () => {
+              accordionBody.style.willChange = '';
               accordionElem.classList.remove('is-active');
-            }, {once: true})
+            }, {once: true});
           }
         });
       });
