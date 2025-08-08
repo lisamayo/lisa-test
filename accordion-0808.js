@@ -22,6 +22,8 @@
 
             // Perform the slide toggle in conjunction with css transitions.
             accordionBody.style.willChange = 'height';
+            accordionBody.style.height = '0px';
+            accordionBody.offsetHeight; // Force reflow to ensure smooth first open
             accordionBody.style.height = accordionBody.scrollHeight + "px";
             accordionBody.setAttribute('aria-hidden', 'false');
 
@@ -53,6 +55,7 @@
             // Set current height before collapsing to trigger transition.
             accordionBody.style.willChange = 'height';
             accordionBody.style.height = accordionBody.scrollHeight + "px";
+            accordionBody.offsetHeight; // Force reflow
             setTimeout(() => {
               accordionBody.style.height = '0px';
             }, 0);
